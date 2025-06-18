@@ -19,7 +19,7 @@ export const allUsers = asyncHandler(async (req, res, next) => {
     if (user.role !== 'Owner' && user.role !== 'Manager') {
         return next(new Error("Not Owner or Manager"))
     }
-    const allUsers = await userModel.find({}).populate("team")
+    const allUsers = await userModel.find().populate("team")
     res.status(200).json({ message: "all users", allUsers })
 
 })
@@ -52,13 +52,23 @@ export const oneUser = asyncHandler(async (req, res, next) => {
         return next(new Error("Not allow"))
     }
     const user = await userModel.findById(id)
+        .populate("team").populate({ path: "tasks", populate: { path: "project", model: "Project" } });
     if (!user) {
         return next(new Error("user not found"))
     }
     res.status(200).json({ message: "one user", user })
 })
 
+export const updateUserDetails = asyncHandler(async (req, res, next) => {
+    const { id } = req.params
+    const user = await userModel.findById(id)
+    if (!user) {
+        return next(new Error("user not found"))
+    }
+    const updatedUser = await userModel.findByIdAndUpdate(id, req.body, { new: true })
+    res.status(200).json({ message: "user updated", updatedUser })
 
+})
 export const updateUserDetailsPAssword = asyncHandler(async (req, res, next) => {
     const { id } = req.params
     const { oldPassword, newPassword, cNewPassword } = req.body
@@ -97,7 +107,7 @@ export const updateUserActive = asyncHandler(async (req, res, next) => {
     checkRole(req.user.role)
     const user = await userModel.findById(id);
     if (!user) {
-     return next(new Error("user not found"))   
+        return next(new Error("user not found"))
     }
     user.isActive = !user.isActive;
     await user.save();

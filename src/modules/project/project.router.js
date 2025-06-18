@@ -11,8 +11,9 @@ const router = Router()
 router.post("/add-project", auth, projectController.createProject);
 router.get("/all", auth, projectController.getAllProjects);
 router.get("/one-project/:id", auth, projectController.getProjectById);
-router.put("/update-project/:id", auth, projectController.updateProject);
+router.patch("/update-project/:id", auth, projectController.updateProject);
 router.delete("/delete-project/:id", auth, projectController.deleteProject);
+router.patch("/delete-team-from-project/:id", auth, projectController.deleteTeamFromProject);
 
 
 

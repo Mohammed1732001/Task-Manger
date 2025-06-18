@@ -8,7 +8,8 @@ import { asyncHandler } from "../../../utils/errorHandling.js"
 
 
 export const attendanceHome = asyncHandler(async (req, res, next) => {
-    res.json({ message: "Hello Attendance Model !" })
+    const attendance = await attendanceModel.find().populate("user team");
+    res.status(200).json({ message: "all attendance", attendance })
 })
 
 
@@ -43,26 +44,39 @@ export const checkOut = asyncHandler(async (req, res, next) => {
     const endOfDay = new Date();
     endOfDay.setHours(23, 59, 59, 999);
 
-    const attendance = await attendanceModel.findOne({
+    let attendance = await attendanceModel.findOne({
         user: userId,
         date: { $gte: startOfDay, $lte: endOfDay },
     });
-    console.log(attendance);
 
-    if (!attendance) return next(new Error("Don't check in yet"));
+    if (!attendance) return next(new Error("لم تقم بتسجيل الحضور بعد"));
 
-    if (attendance.checkOut) return next(new Error("Checked out already"));
+    if (attendance.checkOut) return next(new Error("تم تسجيل الانصراف بالفعل"));
 
     const now = new Date();
-    attendance.checkOut = now;
 
     const diffMs = now - attendance.checkIn;
-    attendance.totalWorkedHours = parseFloat((diffMs / (1000 * 60 * 60)).toFixed(2));
+    const totalWorkedHours = parseFloat((diffMs / (1000 * 60 * 60)).toFixed(2));
 
-    await attendance.save();
+    attendance = await attendanceModel.findOneAndUpdate(
+        {
+            user: userId,
+            date: { $gte: startOfDay, $lte: endOfDay },
+        },
+        {
+            checkOut: now,
+            notes: req.body.notes,
+            totalWorkedHours,
+        },
+        { new: true }
+    );
 
-    res.status(200).json({ message: "Check-out successful", attendance });
-})
+    res.status(200).json({
+        message: "تم تسجيل الانصراف بنجاح",
+        attendance,
+    });
+});
+
 
 
 

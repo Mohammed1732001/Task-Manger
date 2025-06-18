@@ -19,28 +19,43 @@ const storage = multer.diskStorage({
 });
 
 export const fileValidation = {
-  image: ["image/png", "image/jpeg", "image/gif ,"],
+  image: ["image/png", "image/jpeg", "image/gif"],
   document: [
     "application/pdf",                                 // PDF
     "application/msword",                              // .doc
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
-
     "application/vnd.ms-excel",                        // .xls
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",       // .xlsx
-
     "application/vnd.ms-powerpoint",                   // .ppt
-    "application/vnd.openxmlformats-officedocument.presentationml.presentation" // .pptx
+    "application/vnd.openxmlformats-officedocument.presentationml.presentation", // .pptx
+    "application/octet-stream",  // ⬅️ مهم جدًا لبعض ملفات الأوفيس
+    "application/vnd.ms-office", // ⬅️ بعض إصدارات الأوفيس القديمة
+    "text/csv"
+  ],
+  video: [
+    "video/mp4",
+    "video/mkv",
+    "video/avi",
+    "video/mov",
+    "video/webm",
+    "video/ogg"
   ]
 };
 
-function fileFilter(req, file, cb) {
-  if (fileValidation.image.includes(file.mimetype)) {
+const fileFilter = (req, file, cb) => {
+  const allowedTypes = [
+    ...fileValidation.image,
+    ...fileValidation.document,
+    ...fileValidation.video
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
+        console.log("❌ Rejected file with type:", file.mimetype);
     cb(new Error("Invalid file type"), false);
   }
-}
-
+};
 export function fileUpload() {
   return multer({ storage, fileFilter });
 }

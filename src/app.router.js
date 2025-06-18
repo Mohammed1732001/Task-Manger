@@ -5,9 +5,9 @@ import teamRouter from "./modules/team/team.router.js";
 import taskRouter from "./modules/task/task.router.js";
 import attendanceRouter from "./modules/attendance/attendance.router.js";
 import projectRouter from "./modules/project/project.router.js";
+import dashpordRouter from "./modules/dashpoard/dashpoard.router.js";
 import { globalErrorHandler } from "./utils/errorHandling.js";
-
-
+ 
 const initApp = (app, express) => {
     // because Buffer
     app.use(express.json())
@@ -19,6 +19,7 @@ const initApp = (app, express) => {
     app.use("/api/v1/task", taskRouter)
     app.use("/api/v1/project", projectRouter)
     app.use("/api/v1/attendance", attendanceRouter)
+    app.use("/api/v1/dashpoard", dashpordRouter)
 
 
     app.get('/', (req, res, next) => {

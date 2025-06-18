@@ -12,7 +12,7 @@ router.get('/my-team',auth ,teamController.myTeam)
 router.post('/add-team',auth ,teamController.addTeam)
 router.put('/update-team/:id',auth ,teamController.updateTeam)
 router.delete('/delete-team/:id',auth ,teamController.deleteTeam)
-router.put('/add-member/:id',auth ,teamController.addTeamMember)
+router.patch('/add-member/:id',auth ,teamController.addTeamMember)
 router.patch('/delete-memeber/:id',auth ,teamController.removeTeamMember)
 
 

@@ -18,9 +18,10 @@ export const getAllTasks = asyncHandler(async (req, res, next) => {
 })
 export const createdTask = asyncHandler(async (req, res, next) => {
     checkRole(req.user.role)
-    const { title, description, assignedToTeam, deadline, project } = req.body
-    const task = await taskModel.create({ title, description, assignedToTeam, deadline, project, createdBy: req.user.id })
+    const { title, description, assignedToUser, assignedToTeam, deadline, project } = req.body
+    const task = await taskModel.create({ title, assignedToUser, description, assignedToTeam, deadline, project, createdBy: req.user.id })
     const addedTaskForProject = await projectModel.findByIdAndUpdate(project, { $push: { tasks: task } }, { new: true });
+    const addedTaskForUser = await userModel.findByIdAndUpdate(assignedToUser, { $push: { tasks: task } }, { new: true });
     res.status(200).json({ message: "task created", task })
 })
 export const getOneTask = asyncHandler(async (req, res, next) => {
@@ -28,7 +29,10 @@ export const getOneTask = asyncHandler(async (req, res, next) => {
     if (!id) {
         return next(new Error("id is required"))
     }
-    const task = await taskModel.findById(id).populate('project assignedToUser assignedToTeam createdBy')
+    const task = await taskModel.findById(id).populate('project assignedToUser assignedToTeam createdBy').populate({
+        path: 'comments.user',
+        model: 'User'
+    })
 
     if (!task) {
         return next(new Error("task not found"))
@@ -93,7 +97,7 @@ export const deleteCommentFromTask = asyncHandler(async (req, res, next) => {
     res.status(200).json(task);
 })
 export const assignTaskToUser = asyncHandler(async (req, res, next) => {
-      if (req.user.role !== "TeamLeader") {
+    if (req.user.role !== "TeamLeader") {
         return next(new Error("You are not authorized to assign tasks to users."));
     }
     const { assignedToUser } = req.body;
@@ -133,6 +137,7 @@ export const addAttachment = asyncHandler(async (req, res, next) => {
     for (const file of req.files) {
         const result = await cloudinary.uploader.upload(file.path, {
             folder: "task/attachments",
+            resource_type: "raw"
         });
         urls.push(result.secure_url)
 

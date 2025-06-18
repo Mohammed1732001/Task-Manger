@@ -7,7 +7,7 @@ import { checkRole } from "../../../utils/user.utily.js"
 export const createProject = asyncHandler(async (req, res, next) => {
   checkRole(req.user.role);
 
-  const { name, description, teams } = req.body;
+  const { name, description, teams ,createdBy } = req.body;
 
   const uniqueTeams = [...new Set(teams.map(team => team.toString()))];
 
@@ -19,7 +19,7 @@ export const createProject = asyncHandler(async (req, res, next) => {
     name,
     description,
     teams: uniqueTeams,
-    createdBy: req.user._id
+    createdBy
   });
 
   const updatedTeams = await Promise.all(
@@ -43,7 +43,7 @@ export const getProjectById = asyncHandler(async (req, res, next) => {
   const project = await projectModel.findById(id).populate("teams").populate({
     path: "tasks",
     populate: { path: "assignedToUser assignedToTeam" }
-  });
+  }).populate("createdBy");
 
   if (!project) return next(new Error("Project not found"));
 
@@ -84,3 +84,22 @@ export const deleteProject = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({ message: "Project deleted", project });
 });
+
+export const deleteTeamFromProject = asyncHandler(async (req, res, next) => {
+  checkRole(req.user.role)
+  const { id } = req.params;
+  const { teamId } = req.body
+  const project = await projectModel.findById(id);
+
+  const team = await teamModel.findById(teamId);
+  if (!team) {
+    return next(new Error("Team not found"));
+  }
+  if (!project) return next(new Error("Project not found"));
+  updateProject.teams = project.teams.filter(t => t.toString() !== teamId);
+
+  const updatedTeam = await projectModel.findByIdAndUpdate(id, { teams: updateProject.teams }, { new: true });
+  const updatedProject = await teamModel.findByIdAndUpdate(teamId, { projects: team.projects.filter(p => p.toString() !== id) }, { new: true });
+  const all = await Promise.all([updatedTeam, updatedProject])
+  res.status(200).json({ message: "Team deleted from project", all });
+})

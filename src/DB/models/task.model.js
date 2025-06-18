@@ -37,7 +37,7 @@ const taskSchema = new Schema({
 
   status: {
     type: String,
-    enum: ['Pending', 'In Progress', 'Completed'],
+    enum: ['Pending', 'inProgress', 'Completed'],
     default: 'Pending'
   },
   project: {
@@ -49,7 +49,7 @@ const taskSchema = new Schema({
     type: Types.ObjectId,
     ref: "User"
   },
-
+  
   assignedToUser: {
     type: Types.ObjectId,
     ref: "User"

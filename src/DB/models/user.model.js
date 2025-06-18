@@ -9,6 +9,9 @@ const userSchema = new Schema({
         required: true,
         trim: true
     },
+    age: Number,
+    phone: String,
+    address: String,
     email: {
         type: String,
         required: true,
@@ -20,7 +23,7 @@ const userSchema = new Schema({
     },
     role: {
         type: String,
-        enum: ['Owner', 'Manager', 'TeamLeader', 'Employee' , "Hr"],
+        enum: ['Owner', 'Manager', 'TeamLeader', 'Employee', "Hr"],
         default: "Employee"
     },
     titleJop: String,
